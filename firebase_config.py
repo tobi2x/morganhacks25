@@ -12,4 +12,4 @@ if not firebase_path:
 cred = credentials.Certificate(firebase_path)
 firebase_admin.initialize_app(cred)
 
-db = firestore.client()
+db = firestore.client()  

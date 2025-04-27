@@ -131,6 +131,31 @@ if (inputEl) {
   });
 }
 
+// 6) Load previous chat history on page load
+async function loadChatHistory() {
+  try {
+    const res = await fetch('/chat_history');
+    const data = await res.json();
+    if (data.messages) {
+      // Clear chat window before loading
+      document.getElementById('chat-window').innerHTML = '';
+
+      for (const msg of data.messages) {
+        addMessage(msg.user, 'user');
+        addMessage(msg.bot, 'bot');
+      }
+    }
+  } catch (err) {
+    console.error('Error loading chat history:', err);
+  }
+}
+
+// Auto-load chat history when page loads
+window.addEventListener('load', () => {
+  loadChatHistory();
+});
+
+
 
 // // Function to send user message and get Gemini's response
 // async function sendMessage() {
