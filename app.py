@@ -137,8 +137,11 @@ def chat():
         if history:
             history_text = "\n".join([f"User: {msg['user']}\nBot: {msg['bot']}" for msg in history[-5:]])
             context_text += f"\nRecent conversation:\n{history_text}\n"
+            
+        system_instruction = """You are a friendly assistant helping recent graduates transition into adult life after college. Offer clear advice about job hunting, salary expectations, affordable housing, grocery shopping, and budgeting for basic needs. Respond in plain, unformatted text without using bold, italics, bullet points, or headings. If you need to list things, start each item with a dash "-" followed by a space, and **make sure each item is on its own new line** for readability. Do not combine multiple bullet points into the same paragraph. Speak naturally, like a mentor or older sibling would, using simple and supportive language that feels genuine.\n\n"""
 
-        full_prompt = context_text + f"\nUser says: {user_input}"
+        full_prompt = system_instruction + context_text + f"\nUser says: {user_input}"
+
 
         # Send to Gemini
         data = {
