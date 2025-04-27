@@ -6,11 +6,14 @@
   <title>Grad2Growth</title>
   <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
 </head>
+
 <body>
-  <div class="header flex-container">
-    <h1 class="title" style="font-size: 54px;">Grad2Growth</h1>
-    <h2 class="subheading" style="font-size: 32px;">From Graduation to Growth: How to Navigate Post-Grad Life</h2>
-  </div>
+    <div class="header flex-container" style="padding:10px; flex-direction: row; width: 100%">
+        <div style="display: flex; justify-content: space-between;">
+            <h1>Grad2Growth</h1>
+            <h2 style="font-size: 32px;">From Graduation to Growth: How to Navigate Post-Grad Life</h2>
+        </div>
+    </div>
   <div class="nav-bar flex-container">
     <ul>
       <li><a href="{{ url_for('index') }}">Home</a></li>
@@ -34,7 +37,7 @@
 
   <!-- Chat bot -->
   <div class="chat-bot flex-container">
-    <h2>Chat with your AI Assistant</h2>
+    <h1 style="padding:10px;">Chat with your AI Assistant</h1>
     <div id="chat-window" class="chat-box"></div>
     <div class="input-box">
       <input type="text" id="user-input" placeholder="Type your message..." autofocus>

@@ -7,9 +7,11 @@
     <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
 </head>
 <body>
-    <div class="header flex-container">
-        <h1 class="title">Grad2Growth</h1>
-        <h2 class="subheading">Community</h2>
+    <div class="header flex-container" style="padding:10px; flex-direction: row; width: 100%">
+        <div style="display: flex; justify-content: space-between;">
+            <h1>Grad2Growth</h1>
+            <h2 style="font-size: 32px;">From Graduation to Growth: How to Navigate Post-Grad Life</h2>
+        </div>
     </div>
     <div class="nav-bar flex-container">
         <ul>
@@ -19,18 +21,17 @@
             <li><a href="{{ url_for('profile') }}">Profile</a></li>
         </ul>
     </div>
-    <div class="community-container">
-        <h1>Community Posts</h1>
+    <div style="padding-left: 20px;"class="community-container">
+        <h1 style="padding: 10px;">Community Posts</h1>
         <form id="post-form" action="/post" method="POST">
-            <textarea name="content" id="content" placeholder="What would you like to share?" required></textarea><br>
-        
-            <label for="post-as">Post as:</label>
-            <select id="post-as" name="post_as" required>
+            <label style="font-size: 16pt;" for="post-as">Post as:</label>
+            <select  style="padding:4px; font-size: 16pt;" id="post-as" name="post_as" required>
                 <option value="anonymous">Anonymous</option>
                 <option value="{{ username }}">{{ username }}</option>
             </select><br>
-        
-            <button type="submit">Post</button>
+            <textarea style="font-size: 14pt; font-family: Verdana, Geneva, Tahoma, sans-serif; height: 100px; width: 500px;" name="content" id="content" placeholder="What would you like to share?" required></textarea><br>
+
+            <button  style="padding: 4px; font-size: 16pt;" type="submit">Post</button>
         </form>
         
         <!-- Username selector dropdown
@@ -59,7 +60,7 @@
         {% endfor %}
     </div> -->
 
-    <div class="posts">
+    <div style="flex-direction: row-reverse; flex-wrap: wrap-reverse; padding: 20px" class="posts flex-container">
         {% for post in posts %}
             <div class="post">
                 <p><strong>
@@ -72,12 +73,12 @@
     
                 <!-- Reply Form -->
                 <form action="{{ url_for('reply', post_id=post.id) }}" method="POST" class="reply-form">
-                    <input type="text" name="reply_content" placeholder="Write a reply..." required>
-                    <select name="reply_as">
+                    <input style="padding: 4px; font-size: 14pt;" type="text" name="reply_content" placeholder="Write a reply..." required>
+                    <select style="padding: 2px; font-size: 14pt;" name="reply_as">
                         <option value="anonymous">Anonymous</option>
                         <option value="{{ username }}">{{ username }}</option>
                     </select>
-                    <button type="submit">Reply</button>
+                    <button style="padding: 2px; font-size: 14pt;"type="submit">Reply</button>
                 </form>
     
                 <!-- Replies -->

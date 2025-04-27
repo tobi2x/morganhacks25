@@ -7,9 +7,11 @@
     <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
 </head>
 <body>
-    <div class="header flex-container">
-        <h1 class="title">Grad2Growth</h1>
-        <h2 class="subheading">Your Profile</h2>
+    <div class="header flex-container" style="padding:10px; flex-direction: row; width: 100%">
+        <div style="display: flex; justify-content: space-between;">
+            <h1>Grad2Growth</h1>
+            <h2 style="font-size: 32px;">From Graduation to Growth: How to Navigate Post-Grad Life</h2>
+        </div>
     </div>
 
     <div class="nav-bar flex-container">
@@ -21,43 +23,48 @@
         </ul>
     </div>
 
+ 
+
     <div class="profile-container flex-container">
+        <h1 style="padding: 10px;">User Profile</h1>
         {% if profile %}
-            <h3>Hello, {{ profile.first_name }} {{ profile.last_name }}!</h3>
-            <p><strong>Username:</strong> {{ profile.username }}</p>
-            <p><strong>Email:</strong> {{ profile.email }}</p>
-            <p><strong>Career Goals:</strong> {{ profile.career_goals }}</p>
-            <p><strong>Lifestyle:</strong> {{ profile.lifestyle }}</p>
+            <div style="font-size: 14pt; padding: 20px">
+                <h3>Hello, {{ profile.first_name }} {{ profile.last_name }}!</h3>
+                <p><strong>Username:</strong> {{ profile.username }}</p>
+                <p><strong>Email:</strong> {{ profile.email }}</p>
+                <p><strong>Career Goals:</strong> {{ profile.career_goals }}</p>
+                <p><strong>Lifestyle:</strong> {{ profile.lifestyle }}</p>
 
-            <!-- Edit Button -->
-            <button onclick="showEditForm()">Edit Profile</button>
+                <!-- Edit Button -->
+                <button style="padding: 2px; font-size: 16pt;" onclick="showEditForm()">Edit Profile</button>
 
-            <!-- Hidden Edit Form -->
-            <form id="edit-profile-form" style="display:none;" onsubmit="submitProfile(event)">
-                <label>Username: <input type="text" id="username" name="username" value="{{ profile.username }}" required></label><br>
-                <label>First Name: <input type="text" id="first_name" name="first_name" value="{{ profile.first_name }}" required></label><br>
-                <label>Last Name: <input type="text" id="last_name" name="last_name" value="{{ profile.last_name }}" required></label><br>
-                <label>Career Goals: <input type="text" id="career_goals" name="career_goals" value="{{ profile.career_goals }}"></label><br>
-                <label>Lifestyle Description: <input type="text" id="lifestyle" name="lifestyle" value="{{ profile.lifestyle }}"></label><br>
-                <button type="submit">Save Changes</button>
-            </form>
+                <!-- Hidden Edit Form -->
+                <form id="edit-profile-form" style="display:none;" onsubmit="submitProfile(event)">
+                    <label>Username: <input type="text" id="username" name="username" value="{{ profile.username }}" required></label><br>
+                    <label>First Name: <input type="text" id="first_name" name="first_name" value="{{ profile.first_name }}" required></label><br>
+                    <label>Last Name: <input type="text" id="last_name" name="last_name" value="{{ profile.last_name }}" required></label><br>
+                    <label>Career Goals: <input type="text" id="career_goals" name="career_goals" value="{{ profile.career_goals }}"></label><br>
+                    <label>Lifestyle Description: <input type="text" id="lifestyle" name="lifestyle" value="{{ profile.lifestyle }}"></label><br>
+                    <button type="submit">Save Changes</button>
+                </form>
 
-            <!-- Logout Button -->
-            <form action="{{ url_for('logout') }}" method="POST" style="margin-top: 10px;">
-                <button type="submit">Logout</button>
-            </form>
+                <!-- Logout Button -->
+                <form action="{{ url_for('logout') }}" method="POST" style="margin-top: 10px;">
+                    <button style="padding: 2px; font-size: 16pt;" type="submit">Logout</button>
+                </form>
 
-        {% else %}
-            <h3>Complete Your Profile</h3>
-            <form id="profile-form" onsubmit="submitProfile(event)">
-                <label>Username: <input type="text" id="username" name="username" required></label><br>
-                <label>First Name: <input type="text" id="first_name" name="first_name" required></label><br>
-                <label>Last Name: <input type="text" id="last_name" name="last_name" required></label><br>
-                <label>Career Goals: <input type="text" id="career_goals" name="career_goals"></label><br>
-                <label>Lifestyle Description: <input type="text" id="lifestyle" name="lifestyle"></label><br>
-                <button type="submit">Save Profile</button>
-            </form>
-        {% endif %}
+            {% else %}
+                <h3>Complete Your Profile</h3>
+                <form id="profile-form" onsubmit="submitProfile(event)">
+                    <label>Username: <input type="text" id="username" name="username" required></label><br>
+                    <label>First Name: <input type="text" id="first_name" name="first_name" required></label><br>
+                    <label>Last Name: <input type="text" id="last_name" name="last_name" required></label><br>
+                    <label>Career Goals: <input type="text" id="career_goals" name="career_goals"></label><br>
+                    <label>Lifestyle Description: <input type="text" id="lifestyle" name="lifestyle"></label><br>
+                    <button style="padding: 2px; font-size: 16pt;" type="submit">Save Profile</button>
+                </form>
+            {% endif %}
+            </div>
     </div>
 
     <script>

@@ -7,10 +7,12 @@
   <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
 </head>
 <body>
-  <div class="header flex-container">
-    <h1 class="title">Grad2Growth</h1>
-    <h2 class="subheading">From Graduation to Growth</h2>
-  </div>
+    <div class="header flex-container" style="padding:10px; flex-direction: row; width: 100%">
+        <div style="display: flex; justify-content: space-between;">
+            <h1>Grad2Growth</h1>
+            <h2 style="font-size: 32px;">From Graduation to Growth: How to Navigate Post-Grad Life</h2>
+        </div>
+    </div>
   <div class="nav-bar flex-container">
     <ul>
       <li><a href="{{ url_for('index') }}">Home</a></li>
@@ -20,9 +22,10 @@
     </ul>
   </div>
   <div class="content">
-    <h3>About Grad2Growth</h3>
-    <p>Grad2Growth is a platform dedicated to helping recent graduates navigate the transition from academia to professional life. Here you can build a personalized profile, access community support, and chat with your AI assistant for tips on career planning, financial management, and more.</p>
-  </div>
+    <h1 style="padding: 10px;">About Grad2Growth</h1>
+    <p style="font-size: 20px; padding: 20px;">Grad2Growth is a platform dedicated to helping recent graduates navigate the transition from academia to professional life. Here you can build a personalized profile, access community support, and chat with your AI assistant for tips on career planning, financial management, and more.</p>
+    <img src="static/images/collage.png" alt="Image collage of corporate buildings in Philadelphia and San Francisco, a sunset, the Santa Monica beach, the Redwood trees, and kayaking.">
+</div>
   <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

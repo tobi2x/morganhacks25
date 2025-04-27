@@ -7,25 +7,36 @@
   <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
 </head>
 <body>
-  <div class="header flex-container">
-    <h1 class="title">Grad2Growth</h1>
-    <h2 class="subheading">Login or Register to Get Started</h2>
+  <div class="header flex-container" style="padding:10px; flex-direction: row; width: 100%">
+    <div style="display: flex; justify-content: space-between;">
+        <h1>Grad2Growth</h1>
+        <h2 style="font-size: 32px;">Login or Register to Get Started</h2>
+    </div>
+</div>
+
+  <div class="auth-container flex-container" style="width:100%; justify-content: center; padding-left: 20px;">
+    <div style="display: flex">
+      <form id="login-form" onsubmit="login(event)">
+        <h2>Login</h2>
+        <input type="email" id="login-email" placeholder="Email" required><br>
+        <input type="password" id="login-password" placeholder="Password" required><br>
+        <button type="submit" style="padding: 2px; font-size: 14pt">Login</button>
+     </form>
+    </div>
+    
+    <div style="display: flex">
+      <form id="register-form" onsubmit="register(event)">
+        <h2>Register</h2>
+        <input type="email" id="register-email" placeholder="Email" required><br>
+        <input type="password" id="register-password" placeholder="Password" required><br>
+        <button type="submit" style="padding: 2px; font-size: 14pt">Register</button>
+      </form>
+    </div>
+    
   </div>
 
-  <div class="auth-container flex-container">
-    <form id="login-form" onsubmit="login(event)">
-      <h3>Login</h3>
-      <input type="email" id="login-email" placeholder="Email" required><br>
-      <input type="password" id="login-password" placeholder="Password" required><br>
-      <button type="submit">Login</button>
-    </form>
-
-    <form id="register-form" onsubmit="register(event)">
-      <h3>Register</h3>
-      <input type="email" id="register-email" placeholder="Email" required><br>
-      <input type="password" id="register-password" placeholder="Password" required><br>
-      <button type="submit">Register</button>
-    </form>
+  <div>
+    <img src="static/images/collage.png" alt="Image collage of corporate buildings in Philadelphia and San Francisco, a sunset, the Santa Monica beach, the Redwood trees, and kayaking.">
   </div>
 
   <script src="{{ url_for('static', filename='auth.js') }}"></script>
