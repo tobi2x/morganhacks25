@@ -77,15 +77,19 @@ def profile():
 
 @app.route("/community")
 def community():
+    # Pass saved username (if any) along with posts
+    username = session.get('profile', {}).get('username', 'Anonymous')
     posts = session.get('community_posts', [])
-    return render_template("community.html", posts=posts)
+    return render_template("community.html", posts=posts, username=username)
 
 @app.route("/post", methods=["POST"])
 def post():
-    content = request.form.get("content")
+    # Get both content and username from the form
+    content = request.form.get('content')
+    username = request.form.get('username', 'Anonymous')
     if content:
         posts = session.get('community_posts', [])
-        posts.append(content)
+        posts.append({ 'username': username, 'content': content })
         session['community_posts'] = posts
     return redirect(url_for('community'))
 

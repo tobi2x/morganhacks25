@@ -6,6 +6,7 @@ if (profileForm) {
   profileForm.addEventListener('submit', async function(e) {
     e.preventDefault();
     const profile = {
+      username: document.getElementById('user').value,
       first_name: document.getElementById('fname').value,
       last_name:  document.getElementById('lname').value,
       email:      document.getElementById('email').value,
@@ -20,6 +21,17 @@ if (profileForm) {
     const data = await res.json();
     if (data.message) alert(data.message);
   });
+
+    // — Allow Enter in any profile input to submit the form —
+    profileForm.querySelectorAll('input').forEach(inputEl => {
+        inputEl.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();          // prevent default form behavior
+            profileForm.requestSubmit(); // trigger the form's submit handler
+          }
+        });
+      });
+
 }
 
 // 2) Handle community post form submission (on community.html)
@@ -28,16 +40,33 @@ if (postForm) {
   postForm.addEventListener('submit', async function(e) {
     e.preventDefault();
     const content = document.getElementById('content').value;
+    const username = document.getElementById('username-select').value;
     await fetch('/post', {
       method: 'POST',
-      body: new URLSearchParams({ content })
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ content, username })
     });
     window.location.reload();  // refresh to show new post
   });
+  
+    // — Allow Enter in the textarea to submit, too —
+    const contentEl = document.getElementById('content');
+    if (contentEl) {
+      contentEl.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();        // prevent newline
+          postForm.requestSubmit();  // trigger the form's submit handler
+        }
+      });
+    }
+    const username = document.getElementById('user').value;
+    const userLink = document.querySelector('.user-name');
+    userLink.textContent = username;
+
 }
 
 // 3) Send user message to Flask /chat and display conversation
-async function sendMessage() {
+    async function sendMessage() {
   const inputEl = document.getElementById('user-input');
   const chatWindow = document.getElementById('chat-window');
   const userMessage = inputEl.value.trim();
@@ -92,6 +121,16 @@ document.querySelectorAll('button[onclick="sendMessage()"]').forEach(btn =>
   btn.addEventListener('click', sendMessage)
 );
 
+// Also trigger sendMessage when the user hits Enter in the chat input
+const inputEl = document.getElementById('user-input');
+if (inputEl) {
+  inputEl.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();  // prevent any default form submission/reload
+      sendMessage();
+    }
+  });
+}
 
 
 // // Function to send user message and get Gemini's response

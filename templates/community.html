@@ -21,6 +21,53 @@
     </div>
     <div class="community-container">
         <h1>Community Posts</h1>
+
+        <!-- Username selector dropdown -->
+        <form id="post-form" action="/post" method="POST" class="post-form">
+            <label for="username-select">Post as:</label>
+            <select id="username-select" name="username">
+                <option value="Anonymous">Anonymous</option>
+                <option value="{{ username }}">{{ username }}</option>
+            </select>
+
+            <textarea name="content" id="content" placeholder="What would you like to share?" required></textarea>
+            <button type="submit">Post</button>
+        </form>
+
+        <!-- Render each post with its author's username -->
+        <div class="posts">
+            {% for post in posts %}
+                <div class="post">@{{ post.username }}: {{ post.content }}</div>
+            {% endfor %}
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Community - Grad2Growth</title>
+    <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div class="header flex-container">
+        <h1 class="title">Grad2Growth</h1>
+        <h2 class="subheading">Community</h2>
+    </div>
+    <div class="nav-bar flex-container">
+        <ul>
+            <li><a href="{{ url_for('index') }}">Home</a></li>
+            <li><a href="{{ url_for('community') }}">Community</a></li>
+            <li><a href="{{ url_for('about') }}">About</a></li>
+            <li><a href="{{ url_for('profile') }}">Profile</a></li>
+        </ul>
+    </div>
+    <div class="community-container">
+        <h1>Community Posts</h1>
         <form id="post-form" action="/post" method="POST">
             <textarea name="content" id="content" placeholder="What would you like to share?" required></textarea>
             <button type="submit">Post</button>
@@ -33,4 +80,4 @@
     </div>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
-</html>
+</html> -->
