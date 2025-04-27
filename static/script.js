@@ -40,30 +40,29 @@ if (postForm) {
   postForm.addEventListener('submit', async function(e) {
     e.preventDefault();
     const content = document.getElementById('content').value;
-    const username = document.getElementById('username-select').value;
+    const postAs = document.getElementById('post-as').value;  // <-- grab from post-as not username-select
+
     await fetch('/post', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ content, username })
+      body: new URLSearchParams({ content: content, post_as: postAs }) // <-- send post_as not username
     });
+
     window.location.reload();  // refresh to show new post
   });
-  
-    // — Allow Enter in the textarea to submit, too —
-    const contentEl = document.getElementById('content');
-    if (contentEl) {
-      contentEl.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-          e.preventDefault();        // prevent newline
-          postForm.requestSubmit();  // trigger the form's submit handler
-        }
-      });
-    }
-    const username = document.getElementById('user').value;
-    const userLink = document.querySelector('.user-name');
-    userLink.textContent = username;
 
+  // Allow Enter in the textarea to submit the form too
+  const contentEl = document.getElementById('content');
+  if (contentEl) {
+    contentEl.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();        // prevent newline
+        postForm.requestSubmit();  // trigger the form's submit handler
+      }
+    });
+  }
 }
+
 
 // 3) Send user message to Flask /chat and display conversation
     async function sendMessage() {

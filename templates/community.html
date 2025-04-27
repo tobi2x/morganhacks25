@@ -21,8 +21,19 @@
     </div>
     <div class="community-container">
         <h1>Community Posts</h1>
-
-        <!-- Username selector dropdown -->
+        <form id="post-form" action="/post" method="POST">
+            <textarea name="content" id="content" placeholder="What would you like to share?" required></textarea><br>
+        
+            <label for="post-as">Post as:</label>
+            <select id="post-as" name="post_as" required>
+                <option value="anonymous">Anonymous</option>
+                <option value="{{ username }}">{{ username }}</option>
+            </select><br>
+        
+            <button type="submit">Post</button>
+        </form>
+        
+        <!-- Username selector dropdown
         <form id="post-form" action="/post" method="POST" class="post-form">
             <label for="username-select">Post as:</label>
             <select id="username-select" name="username">
@@ -32,15 +43,61 @@
 
             <textarea name="content" id="content" placeholder="What would you like to share?" required></textarea>
             <button type="submit">Post</button>
-        </form>
+        </form> -->
 
-        <!-- Render each post with its author's username -->
-        <div class="posts">
-            {% for post in posts %}
-                <div class="post">@{{ post.username }}: {{ post.content }}</div>
-            {% endfor %}
-        </div>
+    <!-- <div class="posts">
+        {% for post in posts %}
+            <div class="post">
+                <p><strong>
+                    {% if post.visible_username == 'Anonymous' %}
+                        Anonymous
+                    {% else %}
+                        @{{ post.visible_username }}
+                    {% endif %}
+                :</strong> {{ post.content }}</p>
+            </div>
+        {% endfor %}
+    </div> -->
+
+    <div class="posts">
+        {% for post in posts %}
+            <div class="post">
+                <p><strong>
+                    {% if post.visible_username == 'Anonymous' %}
+                        Anonymous
+                    {% else %}
+                        @{{ post.visible_username }}
+                    {% endif %}
+                :</strong> {{ post.content }}</p>
+    
+                <!-- Reply Form -->
+                <form action="{{ url_for('reply', post_id=post.id) }}" method="POST" class="reply-form">
+                    <input type="text" name="reply_content" placeholder="Write a reply..." required>
+                    <select name="reply_as">
+                        <option value="anonymous">Anonymous</option>
+                        <option value="{{ username }}">{{ username }}</option>
+                    </select>
+                    <button type="submit">Reply</button>
+                </form>
+    
+                <!-- Replies -->
+                <div class="replies">
+                    {% for reply in post.replies %}
+                        <p class="reply"><strong>
+                            {% if reply.visible_username == 'Anonymous' %}
+                                Anonymous
+                            {% else %}
+                                @{{ reply.visible_username }}
+                            {% endif %}
+                        :</strong> {{ reply.content }}</p>
+                    {% endfor %}
+                </div>
+    
+            </div>
+        {% endfor %}
     </div>
+    
+    
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

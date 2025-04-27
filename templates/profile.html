@@ -11,6 +11,7 @@
         <h1 class="title">Grad2Growth</h1>
         <h2 class="subheading">Your Profile</h2>
     </div>
+
     <div class="nav-bar flex-container">
         <ul>
             <li><a href="{{ url_for('index') }}">Home</a></li>
@@ -19,12 +20,57 @@
             <li><a href="{{ url_for('profile') }}">Profile</a></li>
         </ul>
     </div>
-    <div class="profile-container">
-        <h3>Hello, {{ profile.first_name }} {{ profile.last_name }}!</h3>
-        <p><strong>Email:</strong> {{ profile.email }}</p>
-        <p><strong>Career Goals:</strong> {{ profile.career_goals }}</p>
-        <p><strong>Lifestyle:</strong> {{ profile.lifestyle }}</p>
+
+    <div class="profile-container flex-container">
+        {% if profile %}
+            <h3>Hello, {{ profile.first_name }} {{ profile.last_name }}!</h3>
+            <p><strong>Username:</strong> {{ profile.username }}</p>
+            <p><strong>Email:</strong> {{ profile.email }}</p>
+            <p><strong>Career Goals:</strong> {{ profile.career_goals }}</p>
+            <p><strong>Lifestyle:</strong> {{ profile.lifestyle }}</p>
+        {% else %}
+            <h3>Complete Your Profile</h3>
+            <form id="profile-form" onsubmit="submitProfile(event)">
+                <label>Username: <input type="text" id="username" name="username" required></label><br>
+                <label>First Name: <input type="text" id="first_name" name="first_name" required></label><br>
+                <label>Last Name: <input type="text" id="last_name" name="last_name" required></label><br>
+                <label>Career Goals: <input type="text" id="career_goals" name="career_goals"></label><br>
+                <label>Lifestyle Description: <input type="text" id="lifestyle" name="lifestyle"></label><br>
+                <button type="submit">Save Profile</button>
+            </form>
+        {% endif %}
     </div>
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+    <script>
+    async function submitProfile(event) {
+        event.preventDefault();
+        const profile = {
+            username: document.getElementById('username').value,
+            first_name: document.getElementById('first_name').value,
+            last_name: document.getElementById('last_name').value,
+            career_goals: document.getElementById('career_goals').value,
+            lifestyle: document.getElementById('lifestyle').value,
+        };
+
+        const res = await fetch('/save_profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(profile),
+        });
+
+        const data = await res.json();
+        if (data.message) {
+            alert(data.message);
+            window.location.reload(); // Reload page to show updated profile
+        } else {
+            alert(data.error || "Unknown error saving profile.");
+        }
+    }
+    </script>
+
+    <form action="{{ url_for('logout') }}" method="POST">
+        <button type="submit">Logout</button>
+    </form>
+    
 </body>
 </html>
