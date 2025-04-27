@@ -12,15 +12,17 @@ firebase_credentials_json = os.getenv("FIREBASE_CREDENTIALS")
 if not firebase_credentials_json:
     raise RuntimeError("FIREBASE_CREDENTIALS environment variable is not set.")
 
+# Parse the credentials JSON string
 firebase_credentials_dict = json.loads(firebase_credentials_json)
 
-# Write credentials to a temporary file properly
-temp_file = tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.json')
-json.dump(firebase_credentials_dict, temp_file)
-temp_file.flush()  # <-- important: write the file to disk
-temp_file.seek(0)  # <-- important: move to the start of the file
+# Create and properly close a temp file
+with tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.json') as temp_file:
+    json.dump(firebase_credentials_dict, temp_file)
+    temp_file.flush()
+    temp_file_path = temp_file.name  # Save path before closing
 
-cred = credentials.Certificate(temp_file.name)
+# NOW safe to use after file closed
+cred = credentials.Certificate(temp_file_path)
 
 firebase_admin.initialize_app(cred)
 
