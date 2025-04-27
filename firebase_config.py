@@ -1,29 +1,15 @@
 import os
-import json
-import tempfile
+from dotenv import load_dotenv
 import firebase_admin
 from firebase_admin import credentials, firestore
-from dotenv import load_dotenv
 
 load_dotenv()
 
-firebase_credentials_json = os.getenv("FIREBASE_CREDENTIALS")
+firebase_path = os.getenv("FIRE-PATH")
+if not firebase_path:
+    raise Exception("FIRE-PATH not set in .env file")
 
-if not firebase_credentials_json:
-    raise RuntimeError("FIREBASE_CREDENTIALS environment variable is not set.")
-
-# Parse the credentials JSON string
-firebase_credentials_dict = json.loads(firebase_credentials_json)
-
-# Create and properly close a temp file
-with tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.json') as temp_file:
-    json.dump(firebase_credentials_dict, temp_file)
-    temp_file.flush()
-    temp_file_path = temp_file.name  # Save path before closing
-
-# NOW safe to use after file closed
-cred = credentials.Certificate(temp_file_path)
-
+cred = credentials.Certificate(firebase_path)
 firebase_admin.initialize_app(cred)
 
-db = firestore.client()
+db = firestore.client()  
