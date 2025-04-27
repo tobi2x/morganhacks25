@@ -15,16 +15,22 @@ load_dotenv()
 
 # db = firestore.client()
 
+# firebase_credentials_json = os.getenv("FIREBASE_CREDENTIALS")
+
+# if firebase_credentials_json:
+#     cred_dict = json.loads(firebase_credentials_json)
+#     cred = credentials.Certificate(cred_dict)
+# else:
+#     firebase_path = os.getenv("FIRE_PATH")
+#     if not firebase_path:
+#         raise Exception("Neither FIREBASE_CREDENTIALS nor FIRE_PATH is set.")
+#     cred = credentials.Certificate(firebase_path)
+
+# firebase_admin.initialize_app(cred)
+# db = firestore.client()
+
 firebase_credentials_json = os.getenv("FIREBASE_CREDENTIALS")
-
-if firebase_credentials_json:
-    cred_dict = json.loads(firebase_credentials_json)
-    cred = credentials.Certificate(cred_dict)
-else:
-    firebase_path = os.getenv("FIRE_PATH")
-    if not firebase_path:
-        raise Exception("Neither FIREBASE_CREDENTIALS nor FIRE_PATH is set.")
-    cred = credentials.Certificate(firebase_path)
-
+cred_dict = json.loads(firebase_credentials_json)
+cred = credentials.Certificate(cred_dict)
 firebase_admin.initialize_app(cred)
 db = firestore.client()
