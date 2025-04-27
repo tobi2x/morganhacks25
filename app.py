@@ -4,6 +4,7 @@ import requests
 from dotenv import load_dotenv
 from firebase_config import db
 from firebase_admin import firestore
+import traceback
 
 # Load environment variables
 load_dotenv()
@@ -11,7 +12,7 @@ load_dotenv()
 app = Flask(__name__, static_folder="static", template_folder="templates")
 app.secret_key = os.getenv("SECRET_KEY", "dev")
 
-GEMINI_API_KEY = os.getenv("GEMINI-API-KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
 HEADERS = {"Content-Type": "application/json"}
 
@@ -155,6 +156,8 @@ def chat():
         return jsonify({"reply": bot_reply})
 
     except Exception as e:
+        print("Exception occurred:", str(e))
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 @app.route("/community")
