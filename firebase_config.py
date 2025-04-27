@@ -29,8 +29,25 @@ load_dotenv()
 # firebase_admin.initialize_app(cred)
 # db = firestore.client()
 
+# firebase_credentials_json = os.getenv("FIREBASE_CREDENTIALS")
+# cred_dict = json.loads(firebase_credentials_json)
+# cred = credentials.Certificate(cred_dict)
+# firebase_admin.initialize_app(cred)
+# db = firestore.client()
+
+load_dotenv()
+
 firebase_credentials_json = os.getenv("FIREBASE_CREDENTIALS")
-cred_dict = json.loads(firebase_credentials_json)
-cred = credentials.Certificate(cred_dict)
+
+if not firebase_credentials_json:
+    raise Exception("FIREBASE_CREDENTIALS is not set.")
+
+try:
+    firebase_credentials_dict = json.loads(firebase_credentials_json)  # <--- load JSON string into dict
+except Exception as e:
+    raise Exception(f"Failed to parse FIREBASE_CREDENTIALS env var: {e}")
+
+cred = credentials.Certificate(firebase_credentials_dict)  # <--- pass dict, not string!
 firebase_admin.initialize_app(cred)
+
 db = firestore.client()
