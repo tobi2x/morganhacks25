@@ -15,7 +15,7 @@ ENV GEMINI_API_KEY="AIzaSyC18pXVuglICZx3v_OLxhszx4ItyqCNdOE"
 
 COPY grad2growth-firebase-adminsdk-fbsvc-7911fd6289.json /app/firebase_credentials.json
 
-ENV FIREBASE_CREDENTIALS_FILE="/app/firebase_credentials.json"
+ENV FIRE-PATH="/app/firebase_credentials.json"
 
 EXPOSE 8000
 
