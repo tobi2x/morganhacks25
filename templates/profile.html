@@ -28,6 +28,25 @@
             <p><strong>Email:</strong> {{ profile.email }}</p>
             <p><strong>Career Goals:</strong> {{ profile.career_goals }}</p>
             <p><strong>Lifestyle:</strong> {{ profile.lifestyle }}</p>
+
+            <!-- Edit Button -->
+            <button onclick="showEditForm()">Edit Profile</button>
+
+            <!-- Hidden Edit Form -->
+            <form id="edit-profile-form" style="display:none;" onsubmit="submitProfile(event)">
+                <label>Username: <input type="text" id="username" name="username" value="{{ profile.username }}" required></label><br>
+                <label>First Name: <input type="text" id="first_name" name="first_name" value="{{ profile.first_name }}" required></label><br>
+                <label>Last Name: <input type="text" id="last_name" name="last_name" value="{{ profile.last_name }}" required></label><br>
+                <label>Career Goals: <input type="text" id="career_goals" name="career_goals" value="{{ profile.career_goals }}"></label><br>
+                <label>Lifestyle Description: <input type="text" id="lifestyle" name="lifestyle" value="{{ profile.lifestyle }}"></label><br>
+                <button type="submit">Save Changes</button>
+            </form>
+
+            <!-- Logout Button -->
+            <form action="{{ url_for('logout') }}" method="POST" style="margin-top: 10px;">
+                <button type="submit">Logout</button>
+            </form>
+
         {% else %}
             <h3>Complete Your Profile</h3>
             <form id="profile-form" onsubmit="submitProfile(event)">
@@ -42,6 +61,10 @@
     </div>
 
     <script>
+    function showEditForm() {
+        document.getElementById('edit-profile-form').style.display = 'block';
+    }
+
     async function submitProfile(event) {
         event.preventDefault();
         const profile = {
@@ -61,16 +84,11 @@
         const data = await res.json();
         if (data.message) {
             alert(data.message);
-            window.location.reload(); // Reload page to show updated profile
+            window.location.reload(); // Reload to show updated info
         } else {
             alert(data.error || "Unknown error saving profile.");
         }
     }
     </script>
-
-    <form action="{{ url_for('logout') }}" method="POST">
-        <button type="submit">Logout</button>
-    </form>
-    
 </body>
 </html>

@@ -1,4 +1,4 @@
 .env
 .gitignore
 grad2growth-firebase-adminsdk-fbsvc-7911fd6289.json
-__pychache__/*
+__pycache__
