@@ -135,8 +135,10 @@ def verify():
                 "verified": True,
                 "verification_token": firestore.DELETE_FIELD
             })
-            return render_template('verified.html')
+            session['email'] = user.id
+            return redirect(url_for('profile'))
     return render_template('verification_failed.html')
+
 
 @app.route("/login", methods=["POST"])
 def login():
