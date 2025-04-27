@@ -7,6 +7,9 @@ from dotenv import load_dotenv
 from firebase_config import db
 from firebase_admin import firestore
 from cryptography.fernet import Fernet
+import smtplib
+from email.message import EmailMessage
+import secrets
 import traceback
 
 # Load environment variables
@@ -36,10 +39,41 @@ def decrypt_data(token: str) -> str:
     return cipher.decrypt(token.encode()).decode()
 
 def hash_password(password: str) -> str:
-    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode('utf-8')
 
 def verify_password(password: str, hashed: str) -> bool:
-    return bcrypt.checkpw(password.encode(), hashed.encode())
+    return bcrypt.checkpw(password.encode(), hashed.encode('utf-8'))
+
+def send_verification_email(to_email, token):
+    smtp_server = os.getenv('SMTP_SERVER')
+    smtp_port = int(os.getenv('SMTP_PORT'))
+    smtp_user = os.getenv('SMTP_USER')
+    smtp_password = os.getenv('SMTP_PASSWORD')
+
+    verify_link = f"https://www.gradtogrowth.co/verify?token={token}"
+    # verify_link = f"http://127.0.0.1:8000/verify?token={token}"
+
+
+    email = EmailMessage()
+    email['Subject'] = 'Verify your email - Grad2Growth'
+    email['From'] = smtp_user
+    email['To'] = to_email
+    email.set_content(f"""
+Hi there!
+
+Thanks for signing up for Grad2Growth 🎓✨
+
+Please verify your email by clicking the link below:
+{verify_link}
+
+If you didn't sign up, you can ignore this email.
+
+- The Grad2Growth Team
+""")
+
+    with smtplib.SMTP_SSL(smtp_server, smtp_port) as smtp:
+        smtp.login(smtp_user, smtp_password)
+        smtp.send_message(email)
 
 # -------------------
 # Routes
@@ -66,6 +100,7 @@ def signup():
     try:
         hashed_email = hash_sha256(email)
         hashed_password = hash_password(password)
+        verification_token = secrets.token_urlsafe(32)
 
         user_ref = db.collection('users').document(hashed_email)
         if user_ref.get().exists:
@@ -73,14 +108,35 @@ def signup():
 
         user_ref.set({
             "email": hashed_email,
-            "password": hashed_password
+            "password": hashed_password,
+            "verified": False,
+            "verification_token": verification_token
         })
+
+        send_verification_email(email, verification_token)
 
         session['email'] = hashed_email
 
-        return jsonify({"message": "Signup successful! Now complete your profile."})
+        return jsonify({"message": "Signup successful! Please check your email to verify."})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route("/verify")
+def verify():
+    token = request.args.get('token')
+    if not token:
+        return render_template('verification_failed.html')
+
+    users_ref = db.collection('users').stream()
+    for user in users_ref:
+        data = user.to_dict()
+        if data.get('verification_token') == token:
+            db.collection('users').document(user.id).update({
+                "verified": True,
+                "verification_token": firestore.DELETE_FIELD
+            })
+            return render_template('verified.html')
+    return render_template('verification_failed.html')
 
 @app.route("/login", methods=["POST"])
 def login():
@@ -92,14 +148,18 @@ def login():
 
     try:
         hashed_email = hash_sha256(email)
-
         user_doc = db.collection('users').document(hashed_email).get()
+
         if not user_doc.exists:
             return jsonify({"error": "User not found"}), 404
 
         user_data = user_doc.to_dict()
+
         if not verify_password(password, user_data["password"]):
             return jsonify({"error": "Invalid password"}), 401
+
+        if not user_data.get("verified", False):
+            return jsonify({"error": "Email not verified."}), 403
 
         session['email'] = hashed_email
 
@@ -165,7 +225,7 @@ def chat():
             history_text = "\n".join([f"User: {decrypt_data(msg['user'])}\nBot: {decrypt_data(msg['bot'])}" for msg in history[-5:]])
             context_text += f"\nRecent conversation:\n{history_text}\n"
 
-        system_instruction = """You are a friendly assistant helping recent graduates transition into adult life after college. Offer clear advice about job hunting, salary expectations, affordable housing, grocery shopping, and budgeting for basic needs. Respond in plain, unformatted text without using bold, italics, bullet points, or headings. If you need to list things, start each item with a dash "-" followed by a space, and make sure each item is on its own new line for readability. Speak naturally, like a mentor or older sibling would.\n\n"""
+        system_instruction = """You are a friendly assistant helping recent graduates transition into adult life after college. Offer clear advice about job hunting, salary expectations, affordable housing, grocery shopping, and budgeting for basic needs. Respond in plain, unformatted text without using bold, italics, bullet points, or headings. If you need to list things, start each item with a dash "-" followed by a space, and make sure each item is on its own new line for readability. Speak naturally, like a mentor or older sibling would."""
 
         full_prompt = system_instruction + context_text + f"\nUser says: {user_input}"
 
@@ -270,6 +330,10 @@ def reply(post_id):
 
     return redirect(url_for('community'))
 
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
 @app.route("/logout", methods=["POST"])
 def logout():
     session.clear()
@@ -279,11 +343,6 @@ def logout():
 def reset():
     session.clear()
     return jsonify({"message": "Session reset."})
-
-@app.route("/about")
-def about():
-    return render_template("about.html")
-
 
 if __name__ == "__main__":
     app.run(debug=True)
