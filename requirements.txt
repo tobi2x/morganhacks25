@@ -4,3 +4,5 @@ python-dotenv
 pymongo
 firebase-admin
 gunicorn
+cryptography
+bcrypt

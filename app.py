@@ -1,9 +1,12 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 import os
 import requests
+import hashlib
+import bcrypt
 from dotenv import load_dotenv
 from firebase_config import db
 from firebase_admin import firestore
+from cryptography.fernet import Fernet
 import traceback
 
 # Load environment variables
@@ -15,6 +18,28 @@ app.secret_key = os.getenv("SECRET_KEY", "dev")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
 HEADERS = {"Content-Type": "application/json"}
+
+FERNET_KEY = os.getenv("FERNET_KEY")
+cipher = Fernet(FERNET_KEY.encode())
+
+# -------------------
+# Helper functions
+# -------------------
+
+def hash_sha256(text):
+    return hashlib.sha256(text.encode()).hexdigest()
+
+def encrypt_data(data: str) -> str:
+    return cipher.encrypt(data.encode()).decode()
+
+def decrypt_data(token: str) -> str:
+    return cipher.decrypt(token.encode()).decode()
+
+def hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+def verify_password(password: str, hashed: str) -> bool:
+    return bcrypt.checkpw(password.encode(), hashed.encode())
 
 # -------------------
 # Routes
@@ -39,17 +64,19 @@ def signup():
         return jsonify({"error": "Missing email or password"}), 400
 
     try:
-        user_ref = db.collection('users').document(email)
+        hashed_email = hash_sha256(email)
+        hashed_password = hash_password(password)
+
+        user_ref = db.collection('users').document(hashed_email)
         if user_ref.get().exists:
             return jsonify({"error": "User already exists"}), 400
 
         user_ref.set({
-            "email": email,
-            "password": password
+            "email": hashed_email,
+            "password": hashed_password
         })
 
-        # Auto-login after signup
-        session['email'] = email
+        session['email'] = hashed_email
 
         return jsonify({"message": "Signup successful! Now complete your profile."})
     except Exception as e:
@@ -64,16 +91,17 @@ def login():
         return jsonify({"error": "Missing email or password"}), 400
 
     try:
-        user_doc = db.collection('users').document(email).get()
+        hashed_email = hash_sha256(email)
+
+        user_doc = db.collection('users').document(hashed_email).get()
         if not user_doc.exists:
             return jsonify({"error": "User not found"}), 404
 
         user_data = user_doc.to_dict()
-        if user_data["password"] != password:
+        if not verify_password(password, user_data["password"]):
             return jsonify({"error": "Invalid password"}), 401
 
-        # Save logged-in user in session
-        session['email'] = email
+        session['email'] = hashed_email
 
         return jsonify({"message": "Login successful!"})
     except Exception as e:
@@ -86,7 +114,8 @@ def save_profile():
 
     profile = request.json
     try:
-        db.collection('profiles').document(session['email']).set(profile)
+        encrypted_profile = {key: encrypt_data(str(value)) for key, value in profile.items()}
+        db.collection('profiles').document(session['email']).set(encrypted_profile)
         return jsonify({"message": "Profile saved to Firestore!"})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -99,7 +128,8 @@ def profile():
     try:
         profile_doc = db.collection('profiles').document(session['email']).get()
         if profile_doc.exists:
-            profile = profile_doc.to_dict()
+            encrypted_profile = profile_doc.to_dict()
+            profile = {key: decrypt_data(value) for key, value in encrypted_profile.items()}
         else:
             profile = None
     except Exception as e:
@@ -118,42 +148,34 @@ def chat():
         return jsonify({"error": "No message provided"}), 400
 
     try:
-        # Fetch chat history
         chat_ref = db.collection('chat_history').document(session['email'])
         chat_doc = chat_ref.get()
         history = chat_doc.to_dict().get('messages', []) if chat_doc.exists else []
 
-        # Fetch profile info
         profile_ref = db.collection('profiles').document(session['email'])
         profile_doc = profile_ref.get()
-        profile = profile_doc.to_dict() if profile_doc.exists else {}
+        profile = {key: decrypt_data(value) for key, value in profile_doc.to_dict().items()} if profile_doc.exists else {}
 
-        # Build context
         context_text = ""
         if profile:
             context_text += f"You are chatting with {profile.get('first_name', '')} {profile.get('last_name', '')}, interested in {profile.get('career_goals', '')}. "
             context_text += f"Lifestyle description: {profile.get('lifestyle', '')}. "
 
         if history:
-            history_text = "\n".join([f"User: {msg['user']}\nBot: {msg['bot']}" for msg in history[-5:]])
+            history_text = "\n".join([f"User: {decrypt_data(msg['user'])}\nBot: {decrypt_data(msg['bot'])}" for msg in history[-5:]])
             context_text += f"\nRecent conversation:\n{history_text}\n"
-            
-        system_instruction = """You are a friendly assistant helping recent graduates transition into adult life after college. Offer clear advice about job hunting, salary expectations, affordable housing, grocery shopping, and budgeting for basic needs. Respond in plain, unformatted text without using bold, italics, bullet points, or headings. If you need to list things, start each item with a dash "-" followed by a space, and **make sure each item is on its own new line** for readability. Do not combine multiple bullet points into the same paragraph. Speak naturally, like a mentor or older sibling would, using simple and supportive language that feels genuine.\n\n"""
+
+        system_instruction = """You are a friendly assistant helping recent graduates transition into adult life after college. Offer clear advice about job hunting, salary expectations, affordable housing, grocery shopping, and budgeting for basic needs. Respond in plain, unformatted text without using bold, italics, bullet points, or headings. If you need to list things, start each item with a dash "-" followed by a space, and make sure each item is on its own new line for readability. Speak naturally, like a mentor or older sibling would.\n\n"""
 
         full_prompt = system_instruction + context_text + f"\nUser says: {user_input}"
 
-
-        # Send to Gemini
-        data = {
-            "contents": [{"parts": [{"text": full_prompt}]}]
-        }
+        data = {"contents": [{"parts": [{"text": full_prompt}]}]}
         response = requests.post(GEMINI_URL, headers=HEADERS, json=data)
         response.raise_for_status()
         response_data = response.json()
         bot_reply = response_data["candidates"][0]["content"]["parts"][0]["text"]
 
-        # Save updated chat history
-        history.append({"user": user_input, "bot": bot_reply})
+        history.append({"user": encrypt_data(user_input), "bot": encrypt_data(bot_reply)})
         chat_ref.set({"messages": history})
 
         return jsonify({"reply": bot_reply})
@@ -170,17 +192,19 @@ def community():
 
     try:
         profile_doc = db.collection('profiles').document(session['email']).get()
-        username = profile_doc.to_dict().get('username', 'Unknown') if profile_doc.exists else 'Unknown'
+        profile = profile_doc.to_dict()
+        username = decrypt_data(profile.get('username')) if profile and 'username' in profile else 'Unknown'
 
         posts_ref = db.collection('posts').order_by('timestamp', direction=firestore.Query.DESCENDING)
         posts = []
         for doc in posts_ref.stream():
             post_data = doc.to_dict()
             post_data['id'] = doc.id
+            post_data['content'] = decrypt_data(post_data['content'])
+            post_data['visible_username'] = decrypt_data(post_data['visible_username'])
 
-            # Fetch replies
             replies_ref = db.collection('posts').document(doc.id).collection('replies').order_by('timestamp')
-            post_data['replies'] = [r.to_dict() for r in replies_ref.stream()]
+            post_data['replies'] = [{"content": decrypt_data(r.to_dict()['content']), "visible_username": decrypt_data(r.to_dict()['visible_username'])} for r in replies_ref.stream()]
 
             posts.append(post_data)
 
@@ -190,12 +214,6 @@ def community():
         username = "Unknown"
 
     return render_template("community.html", posts=posts, username=username)
-
-
-@app.route("/about")
-def about():
-    return render_template("about.html")
-
 
 @app.route("/post", methods=["POST"])
 def post():
@@ -207,17 +225,16 @@ def post():
 
     if content:
         try:
-            # Real username from profile
             profile_doc = db.collection('profiles').document(session['email']).get()
-            username = profile_doc.to_dict().get('username', 'Unknown') if profile_doc.exists else 'Unknown'
+            profile = profile_doc.to_dict()
+            username = decrypt_data(profile.get('username')) if profile and 'username' in profile else 'Unknown'
 
-            # Visible username
-            visible_username = post_as if post_as != "anonymous" else "Anonymous"
+            visible_username = username if post_as != "anonymous" else "Anonymous"
 
             db.collection('posts').add({
-                "real_username": username,
-                "visible_username": visible_username,
-                "content": content,
+                "real_username": encrypt_data(username),
+                "visible_username": encrypt_data(visible_username),
+                "content": encrypt_data(content),
                 "timestamp": firestore.SERVER_TIMESTAMP
             })
 
@@ -236,17 +253,16 @@ def reply(post_id):
 
     if reply_content:
         try:
-            # Fetch real username
             profile_doc = db.collection('profiles').document(session['email']).get()
-            username = profile_doc.to_dict().get('username', 'Unknown') if profile_doc.exists else 'Unknown'
+            profile = profile_doc.to_dict()
+            username = decrypt_data(profile.get('username')) if profile and 'username' in profile else 'Unknown'
 
-            # Determine visible username
-            visible_username = reply_as if reply_as != "anonymous" else "Anonymous"
+            visible_username = username if reply_as != "anonymous" else "Anonymous"
 
             db.collection('posts').document(post_id).collection('replies').add({
-                "real_username": username,
-                "visible_username": visible_username,
-                "content": reply_content,
+                "real_username": encrypt_data(username),
+                "visible_username": encrypt_data(visible_username),
+                "content": encrypt_data(reply_content),
                 "timestamp": firestore.SERVER_TIMESTAMP
             })
         except Exception as e:
@@ -254,17 +270,20 @@ def reply(post_id):
 
     return redirect(url_for('community'))
 
-
 @app.route("/logout", methods=["POST"])
 def logout():
     session.clear()
     return redirect(url_for('auth'))
 
-
 @app.route("/reset", methods=["POST"])
 def reset():
     session.clear()
     return jsonify({"message": "Session reset."})
+
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
 
 if __name__ == "__main__":
     app.run(debug=True)
